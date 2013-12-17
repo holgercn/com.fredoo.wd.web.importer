@@ -1,11 +1,13 @@
 package com.fredoo.wd.web.importer.model;
 
+import java.util.Date;
+
 public class User {
   private String id;
   private String email;
   private String password;
   private String username;
-  private String joinStamp;
+  private Date joinStamp;
   private String activityStamp;
   private String accountType;
   private String emailVerify;
@@ -59,11 +61,11 @@ public class User {
     this.emailVerify = emailVerify;
   }
 
-  public String getJoinStamp() {
+  public Date getJoinStamp() {
     return joinStamp;
   }
 
-  public void setJoinStamp(String joinStamp) {
+  public void setJoinStamp(Date joinStamp) {
     this.joinStamp = joinStamp;
   }
 
