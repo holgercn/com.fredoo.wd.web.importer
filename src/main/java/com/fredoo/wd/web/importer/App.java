@@ -1,37 +1,47 @@
 package com.fredoo.wd.web.importer;
 
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.core.JobParameters;
-import org.springframework.batch.core.launch.JobLauncher;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Properties;
+
+import com.mysql.jdbc.PreparedStatement;
 
 public class App {
-	public static void main(String[] args) {
 
-		String[] springConfig  = 
-			{	"spring/batch/config/database.xml", 
-				"spring/batch/config/context.xml",
-				"spring/batch/jobs/job-report.xml" 
-			};
-		
-		ApplicationContext context = 
-				new ClassPathXmlApplicationContext(springConfig);
-		
-		JobLauncher jobLauncher = (JobLauncher) context.getBean("jobLauncher");
-		Job job = (Job) context.getBean("reportJob");
+  public Connection getConnection(String database) throws SQLException {
 
-		try {
+    Connection conn = null;
+    Properties connectionProps = new Properties();
+    connectionProps.put("user", "fredoo");
+    connectionProps.put("password", "ai198052");
 
-			JobExecution execution = jobLauncher.run(job, new JobParameters());
-			System.out.println("Exit Status : " + execution.getStatus());
+    conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/" + database, connectionProps);
+    System.out.println("Connected to database : " + database);
+    return conn;
+  }
 
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+  public static void main(String[] args) throws Exception {
+    App app = new App();
+    Connection fredoo = app.getConnection("fredoo");
+    String insert = "insert into USER(id,email,nick_name,password,created,enabled) values (?,?,?,?,?,?)";
+    PreparedStatement statement_fredoo = (PreparedStatement) fredoo.prepareStatement(insert);
 
-		System.out.println("Done");
-
-	}
+    Connection oxwa123 = app.getConnection("oxwa123");
+    Statement statement = oxwa123.createStatement();
+    ResultSet rs = statement.executeQuery("select * from ow_base_user");
+    while (rs.next()) {
+      System.out.println(rs.getInt("id") + " " + rs.getString("email"));
+      statement_fredoo.setInt(1, rs.getInt("id"));
+      statement_fredoo.setString(2, rs.getString("email"));
+      statement_fredoo.setString(3, rs.getString("username"));
+      statement_fredoo.setString(4, rs.getString("password"));
+      statement_fredoo.setDate(5, new Date(Long.parseLong(rs.getString("joinStamp") + "000")));
+      statement_fredoo.setBoolean(6, true);
+      statement_fredoo.execute();
+    }
+  }
 }
